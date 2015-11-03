@@ -1,7 +1,7 @@
 package ic.doc;
 
 
-public class SquareFunction implements Function {
+public class SquareIntegerFunction implements Function<Integer> {
 
     @Override
     public Integer applyTo(Integer input) {

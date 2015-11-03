@@ -1,7 +1,7 @@
 package ic.doc;
 
-public interface Function {
+public interface Function<T> {
 
-    Integer applyTo(Integer input);
+    T applyTo(T input);
 
 }

@@ -2,25 +2,25 @@ package ic.doc;
 
 import java.util.*;
 
-public class MappableList implements Iterable<Integer> {
+public class MappableList<T> implements Iterable<T> {
 
-    final private List<Integer> delegate;
+    private final List<T> delegate;
 
-    public MappableList(List<Integer> delegate) {
+    public MappableList(List<T> delegate) {
         this.delegate = delegate;
     }
 
     /* Map Function */
 
-    public List<Integer> map(Function mapper) {
-        List<Integer> result = new ArrayList<>();
-        for (Integer element : delegate) {
-            result.add(mapper.applyTo(element));
+    public List<T> map(Function mapper) {
+        List<T> result = new ArrayList<>();
+        for (T element : delegate) {
+            result.add((T) mapper.applyTo(element));
         }
         return result;
     }
 
-    public Iterator<Integer> iterator() {
+    public Iterator<T> iterator() {
         return delegate.iterator();
     }
 
