@@ -1,6 +1,6 @@
 package ic.doc;
 
-public interface Function<T> {
+public interface UnaryFunction<T> {
 
     T applyTo(T input);
 
