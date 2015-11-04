@@ -1,6 +1,6 @@
 package ic.doc;
 
-public interface BinaryFunction<T extends Number> {
+public interface BinaryFunction<T> {
 
     T applyTo(T first, T second);
 

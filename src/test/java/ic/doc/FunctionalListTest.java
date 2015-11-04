@@ -1,7 +1,7 @@
 package ic.doc;
 
 import org.junit.Test;
-import java.io.InvalidClassException;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -16,7 +16,8 @@ public class FunctionalListTest {
     final UnaryFunction<Integer> squareFunction
             = new SquareIntegerFunction();
     final BinaryFunction<Integer> productFunction
-            = new ProductFunction();
+            = new ProductIntegerFunction();
+    private Integer result;
 
     @Test
     public void functionalListIsIterableThrough() {
@@ -31,27 +32,18 @@ public class FunctionalListTest {
     }
 
     @Test
-    public void functionalListAppliesAGivenBinaryFunctionToAllItsElements()
-            throws InvalidClassException {
+    public void functionalListAppliesAGivenBinaryFunctionToAllItsElements() {
 
-        Integer result = (Integer) fList.fold(productFunction);
+        result = fList.fold(productFunction, 1);
         assertThat(result, is(24));
     }
 
     @Test
-    public void foldFunctionAppliedToEmptyListThrowsException()
-            throws InvalidClassException {
-        boolean exceptionHasBeenThrown = false;
-
-        // Creating a new empty list for this test only
-        FunctionalList<Integer> fList
-                = new FunctionalList(Arrays.asList());
-        try {
-            fList.fold(productFunction);
-        } catch (NullPointerException e) {
-            exceptionHasBeenThrown = true;
-        }
-        assertThat(exceptionHasBeenThrown, is(true));
+    public void foldFunctionAppliedToEmptyListReturnsAccumulator() {
+        FunctionalList<Integer> emptyList = new FunctionalList(Arrays.asList());
+        result = emptyList.fold(productFunction, 1);
+        assertThat(result, is(1));
     }
+
 
 }
