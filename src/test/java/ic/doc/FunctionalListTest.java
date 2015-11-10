@@ -27,7 +27,7 @@ public class FunctionalListTest {
     @Test
       public void functionalListAppliesAGivenUnaryFunctionToAllItsElements() {
 
-        List<Integer> outputList = fList.map(squareFunction);
+        FunctionalList<Integer> outputList = fList.map(squareFunction);
         assertThat(outputList, contains(1, 4, 9, 16));
     }
 
