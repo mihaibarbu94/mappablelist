@@ -1,28 +1,34 @@
 package ic.doc;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class FunctionalList<T> implements Iterable<T> {
 
+//    public static final int TIMEOUT = 10;
     private final List<T> delegate;
 
     public FunctionalList(List<T> delegate) {
         this.delegate = delegate;
     }
 
-    /* Don't call me Java, nor Haskell. Call me... JASKELL! */
+    /* Don't call me Java, nor Haskell. Call me... JASKELL! Not Hava? */
 
-    public FunctionalList<T> map(UnaryFunction<T> mapper) {
-
-        ExecutorService queue = Executors.newFixedThreadPool(1);
-        List<T> result = new ArrayList<>();
-
-        for (T element : delegate) {
-            queue.execute(new UnaryFunctionApplication(result, mapper, element));
+    public FunctionalList<T> applyMap(UnaryFunction<T> mapper) {
+        ExecutorService executor = Executors.newFixedThreadPool(delegate.size());
+        List<T> mappedList = new ArrayList<>();
+        List<Callable<T>> functionApplications = new ArrayList<>();
+        for (T elem : delegate) {
+            functionApplications.add(new MapFunction(mapper, elem));
         }
-        return new FunctionalList(result);
+        List<Future<T>> fList;
+        try {
+            fList = executor.invokeAll(functionApplications);
+            for(Future<T> future : fList) {
+                mappedList.add(future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {e.printStackTrace();}
+        return new FunctionalList<>(mappedList);
     }
 
 
@@ -33,27 +39,29 @@ public class FunctionalList<T> implements Iterable<T> {
         return accumulator;
     }
 
+    public void add(T elem) {
+        delegate.add(elem);
+    }
+
     public Iterator<T> iterator() {
         return delegate.iterator();
     }
 
-    private class UnaryFunctionApplication implements Runnable {
+    private class MapFunction implements Callable<T> {
 
         private UnaryFunction<T> function;
-        private List<T> results;
         private T elem;
 
-        UnaryFunctionApplication(List<T> results, UnaryFunction<T> function, T elem) {
-            this.results  = results;
+        MapFunction(UnaryFunction<T> function, T elem) {
             this.function = function;
             this.elem     = elem;
         }
 
         @Override
-        public void run() {
-            System.out.println("Application of function on " + elem.toString() + " started");
-            results.add(function.applyTo(elem));
-            System.out.println("Application of function on " + elem.toString() + " finished");
+        public T call() {
+            System.out.println("Mapping on " + elem.toString()
+                                                                + " started");
+            return function.applyTo(elem);
         }
 
     }

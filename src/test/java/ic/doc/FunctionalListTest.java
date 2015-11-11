@@ -3,7 +3,6 @@ package ic.doc;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -27,7 +26,7 @@ public class FunctionalListTest {
     @Test
       public void functionalListAppliesAGivenUnaryFunctionToAllItsElements() {
 
-        FunctionalList<Integer> outputList = fList.map(squareFunction);
+        FunctionalList<Integer> outputList = fList.applyMap(squareFunction);
         assertThat(outputList, contains(1, 4, 9, 16));
     }
 
