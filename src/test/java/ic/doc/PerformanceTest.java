@@ -7,15 +7,17 @@ import java.util.Arrays;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.lessThan;
+import static org.hamcrest.core.Is.is;
 
 public class PerformanceTest {
 
     public static final int SLEEP_TIME = 100;
     final FunctionalList<Integer> list
-            = new FunctionalList<> (Arrays.asList(1,2,3,4,5,3456, 43657));
+            = new FunctionalList<>
+                    (Arrays.asList(43657,43658,43659,43660,43661,43662, 43666));
 
     @Test
-    public void artificiallyLongRunningTimeTest() {
+    public void artificiallyLongRunningTimeForConcurrentMappingTest() {
         long startTime = System.currentTimeMillis();
         UnaryFunction<Integer> slowSquare = new UnaryFunction<Integer>() {
             @Override
@@ -27,13 +29,14 @@ public class PerformanceTest {
             }
         };
         FunctionalList<Integer> squares = list.applyMap(slowSquare);
-        assertThat(squares, contains(1, 4, 9, 16, 25,11943936));
+        assertThat(squares, contains(1905933649,1906020964,1906108281,
+                                1906195600,1906282921,1906370244,1906719556));
         int estimatedTime = (int) (System.currentTimeMillis() - startTime);
         assertThat(estimatedTime, lessThan(2 * SLEEP_TIME));
     }
 
     @Test
-    public void naturallyLongRunningTimeTest(){
+    public void naturallyLongRunningTimeForConcurrentMappingTest(){
         long startTime = System.currentTimeMillis();
         UnaryFunction<Integer> sumPrime = new UnaryFunction<Integer>() {
             @Override
@@ -50,11 +53,31 @@ public class PerformanceTest {
             }
         };
         FunctionalList<Integer> sumPrimesList = list.applyMap(sumPrime);
-        assertThat(sumPrimesList, contains(0, 2, 5, 5, 10, 761455, 93646090));
+        assertThat(sumPrimesList, contains(93646090, 93646090, 93646090, 93646090, 93689751, 93689751, 93689751));
         int estimatedTime = (int) (System.currentTimeMillis() - startTime);
         System.out.println("Running time: roughly " +
                 estimatedTime + "ms");
     }
+
+    @Test
+    public void concurrentFoldTest() {
+        long startTime = System.currentTimeMillis();
+        BinaryFunction<Integer> sum = new BinaryFunction<Integer>() {
+            @Override
+            public Integer applyTo(Integer n, Integer m) {
+                try {
+                    Thread.sleep(SLEEP_TIME);
+                } catch (InterruptedException e) {e.printStackTrace();}
+                return n + m;
+            }
+        };
+        Integer result = list.applyFold(sum, 0);
+        assertThat(result, is(305623));
+        int estimatedTime = (int) (System.currentTimeMillis() - startTime);
+        System.out.println("Running time: roughly " +
+                estimatedTime + "ms");
+    }
+
 
 }
 
