@@ -35,7 +35,7 @@ public class FunctionalList<T> implements Iterable<T> {
 
     public T applyFold(BinaryFunction<T> folder, T accumulator) {
         ExecutorService executor
-                = Executors.newFixedThreadPool(del.size() - 1);
+                = Executors.newFixedThreadPool(del.size() < 2 ? 1 : del.size() - 1);
         FoldFunction fold
                 = new FoldFunction(folder, accumulator, del, executor);
         return fold.call();
@@ -88,7 +88,6 @@ public class FunctionalList<T> implements Iterable<T> {
 
         @Override
         public T call() {
-            //System.out.println("Folding in process... ");
             if (lstSize == 0) {
                 return acc;
             } else if (lstSize == 1) {
