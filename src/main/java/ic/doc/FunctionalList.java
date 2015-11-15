@@ -115,7 +115,6 @@ public class FunctionalList<T> implements Iterable<T> {
 
         @Override
         public T call() {
-
             return function.applyTo(fst, snd);
         }
     }
