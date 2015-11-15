@@ -46,7 +46,7 @@ public class PerformanceTest {
         assertThat(sumPrimesList, contains(93646090, 93646090, 93646090,
                                      93646090, 93689751, 93689751, 93689751));
         int estimatedTime = (int) (System.currentTimeMillis() - startTime);
-        System.out.println("Running time: roughly " + estimatedTime + "ms");
+        assertThat(estimatedTime, lessThan(SLEEP_TIME));
     }
 
     @Test
@@ -66,9 +66,10 @@ public class PerformanceTest {
         Integer result = list.applyFold(sum, 0);
         assertThat(result, is(305623));
         int estimatedTime = (int) (System.currentTimeMillis() - startTime);
-        System.out.println("Running time: roughly " + estimatedTime + "ms");
+        assertThat(estimatedTime, lessThan(5 * SLEEP_TIME));
     }
 
+    // Private non anonymous class created to respect method lines threshold
     private static class SumOfPrimes implements UnaryFunction<Integer> {
         @Override
         public Integer applyTo(Integer n) {

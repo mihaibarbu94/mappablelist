@@ -7,15 +7,17 @@ public class FunctionalList<T> implements Iterable<T> {
 
     // delegate list
     private final List<T> del;
+    private int listSize;
 
     public FunctionalList(List<T> delegate) {
         this.del = delegate;
+        listSize = del.size();
     }
 
     /* Don't call me Java, nor Haskell. Call me... JASKELL! Not Hava? */
 
     public FunctionalList<T> applyMap(UnaryFunction<T> mapper) {
-        ExecutorService executor = Executors.newFixedThreadPool(del.size());
+        ExecutorService executor = Executors.newFixedThreadPool(listSize);
         List<T> mappedList       = new ArrayList<>();
         List<Callable<T>> functionApplications = new ArrayList<>();
         for (T elem : del) {
@@ -33,19 +35,50 @@ public class FunctionalList<T> implements Iterable<T> {
         return new FunctionalList<>(mappedList);
     }
 
-    public T applyFold(BinaryFunction<T> folder, T accumulator) {
+    public T applyFold(BinaryFunction<T> folder, T acc) {
         ExecutorService executor
-                = Executors.newFixedThreadPool(del.size() < 2 ? 1 : del.size() - 1);
-        FoldFunction fold
-                = new FoldFunction(folder, accumulator, del, executor);
-        return fold.call();
+                = Executors.newFixedThreadPool(6);
+        List<T> temporary = del;
+        List<Callable<T>> listOfTasks = new ArrayList<>();
+        if (temporary.isEmpty()) {
+            return acc;
+        }
+        temporary.set(0, foldHelper(folder, acc, executor,
+                                                    temporary, listOfTasks));
+        return temporary.get(0);
+     }
+
+    private T foldHelper(BinaryFunction<T> folder, T acc, ExecutorService
+                    executor, List<T> temp, List<Callable<T>> listOfTasks) {
+        int tempSize = temp.size();
+        while (tempSize > 1) {
+            passThroughArray(folder, acc, temp, listOfTasks, tempSize);
+            List<Future<T>> futures;
+            try {
+                futures = executor.invokeAll(listOfTasks);
+                temp = new ArrayList<>();
+                for (Future<T> future : futures) {
+                    temp.add(future.get());
+                }
+                listOfTasks.clear();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+            tempSize = temp.size();
+        }
+        return temp.get(0);
     }
 
-    public T fold(BinaryFunction<T> folder, T accumulator) {
-        for (T element : del) {
-            accumulator =  folder.applyTo(accumulator, element);
+    private void passThroughArray(BinaryFunction<T> folder, T acc, List<T> temp,
+                                  List<Callable<T>> listOfTasks, int tempSize) {
+        for (int i = 0; i <= tempSize - 1; i++) {
+            if (tempSize % 2 == 1 && i == tempSize - 1) {
+                listOfTasks.add(new FoldFunction(folder, temp.get(i), acc));
+            } else {
+                listOfTasks.add(new FoldFunction(
+                                    folder, temp.get(i), temp.get(++i)));
+            }
         }
-        return accumulator;
     }
 
     public Iterator<T> iterator() {
@@ -64,7 +97,6 @@ public class FunctionalList<T> implements Iterable<T> {
 
         @Override
         public T call() {
-            //System.out.println("Mapping on " + elem.toString() + " started");
             return function.applyTo(elem);
         }
     }
@@ -72,40 +104,19 @@ public class FunctionalList<T> implements Iterable<T> {
     private class FoldFunction implements Callable<T> {
 
         private BinaryFunction<T> function;
-        private T acc;
-        private List<T> list;
-        private ExecutorService executor;
-        private int lstSize;
+        private T fst;
+        private T snd;
 
-        FoldFunction(BinaryFunction<T> function, T acc,
-                                       List<T> list, ExecutorService executor) {
+        public FoldFunction(BinaryFunction<T> function, T fst, T snd) {
             this.function = function;
-            this.acc      = acc;
-            this.list     = list;
-            this.executor = executor;
-            lstSize       = list.size();
+            this.fst = fst;
+            this.snd = snd;
         }
 
         @Override
         public T call() {
-            if (lstSize == 0) {
-                return acc;
-            } else if (lstSize == 1) {
-                return list.get(0);
-            } else {
-                int splitInd = lstSize == 2 ? (lstSize / 2) : (lstSize / 2) + 1;
-                try {
-                    Future<T> first  = executor.submit(new FoldFunction(
-                           function, acc, list.subList(0, splitInd), executor));
-                    Future<T> second = executor.submit(new FoldFunction(
-                           function, acc, list.subList(
-                           splitInd, lstSize), executor));
-                    return function.applyTo(first.get(), second.get());
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                }
-                return acc;
-            }
+
+            return function.applyTo(fst, snd);
         }
     }
 }

@@ -10,14 +10,10 @@ import static org.hamcrest.Matchers.contains;
 
 public class FunctionalListTest {
 
-    public static final int SLEEP_TIME = 100;
     final FunctionalList<Integer> fList
-            = new FunctionalList(Arrays.asList(1, 2, 3, 4));
+            = new FunctionalList<>(Arrays.asList(1, 2, 3, 4));
     final FunctionalList<Integer> emptyList
             = new FunctionalList(Arrays.asList());
-    final FunctionalList<Integer> list
-            = new FunctionalList<>(
-                Arrays.asList(43657, 43658, 43659, 43660, 43661, 43662, 43666));
     final UnaryFunction<Integer> squareFunction
             = new SquareIntegerFunction();
     final BinaryFunction<Integer> productFunction
@@ -39,37 +35,17 @@ public class FunctionalListTest {
     @Test
     public void functionalListAppliesAGivenBinaryFunctionToAllItsElements() {
 
-        result = fList.fold(productFunction, 1);
+        result = fList.applyFold(productFunction, 1);
         assertThat(result, is(24));
     }
 
     @Test
     public void foldFunctionAppliedToEmptyListReturnsAccumulator() {
-        result = emptyList.fold(productFunction, 1);
+        result = emptyList.applyFold(productFunction, 1);
         assertThat(result, is(1));
     }
 
-    @Test
-    public void nonConcurrentFoldTest() {
-        long startTime              = System.currentTimeMillis();
-        BinaryFunction<Integer> sum = new BinaryFunction<Integer>() {
-            @Override
-            public Integer applyTo(Integer n, Integer m) {
-                try {
-                    Thread.sleep(SLEEP_TIME);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                return n + m;
-            }
-        };
-        Integer result = list.fold(sum, 0);
-        assertThat(result, is(305623));
-        int estimatedTime = (int) (System.currentTimeMillis() - startTime);
-        System.out.println("Running time: roughly " + estimatedTime + "ms");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
+    @Test (expected = IllegalArgumentException.class)
     public void applyMapWithAnEmptyListTest() {
         FunctionalList<Integer> outputList = emptyList.applyMap(squareFunction);
     }
