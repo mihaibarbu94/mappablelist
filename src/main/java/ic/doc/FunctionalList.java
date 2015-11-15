@@ -71,7 +71,7 @@ public class FunctionalList<T> implements Iterable<T> {
 
     private void passThroughArray(BinaryFunction<T> folder, T acc, List<T> temp,
                                   List<Callable<T>> listOfTasks, int tempSize) {
-        for (int i = 0; i <= tempSize - 1; i++) {
+        for (int i = 0; i < tempSize; i++) {
             if (tempSize % 2 == 1 && i == tempSize - 1) {
                 listOfTasks.add(new FoldFunction(folder, temp.get(i), acc));
             } else {
