@@ -53,7 +53,8 @@ public class PerformanceTest {
             }
         };
         FunctionalList<Integer> sumPrimesList = list.applyMap(sumPrime);
-        assertThat(sumPrimesList, contains(93646090, 93646090, 93646090, 93646090, 93689751, 93689751, 93689751));
+        assertThat(sumPrimesList, contains(93646090,93646090,93646090,93646090,
+                                                93689751,93689751,93689751));
         int estimatedTime = (int) (System.currentTimeMillis() - startTime);
         System.out.println("Running time: roughly " +
                 estimatedTime + "ms");
@@ -61,7 +62,7 @@ public class PerformanceTest {
 
     @Test
     public void concurrentFoldTest() {
-        long startTime = System.currentTimeMillis();
+        long startTime              = System.currentTimeMillis();
         BinaryFunction<Integer> sum = new BinaryFunction<Integer>() {
             @Override
             public Integer applyTo(Integer n, Integer m) {
@@ -74,10 +75,7 @@ public class PerformanceTest {
         Integer result = list.applyFold(sum, 0);
         assertThat(result, is(305623));
         int estimatedTime = (int) (System.currentTimeMillis() - startTime);
-        System.out.println("Running time: roughly " +
-                estimatedTime + "ms");
+        System.out.println("Running time: roughly " + estimatedTime + "ms");
     }
-
-
 }
 
